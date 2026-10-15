@@ -1,0 +1,8 @@
+# Python 3.12. torch is the CPU build: pip install torch --index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.3
+scipy==1.18.1
+opencv-python-headless==5.0.0.93
+scikit-image==0.26.0
+matplotlib==3.11.2
+torch==2.14.1
+transformers==5.19.0  # only for the SigLIP style labels (style_embed.py, style_zeroshot.py)

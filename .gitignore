@@ -1,0 +1,11 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+
+# run outputs, checkpoints, trained scorers, embeddings and raster caches (gigabytes; rebuilt by
+# the scripts in scripts/runs/ and src/)
+/runs/
+
+# local-only material: third-party test icons, early results, retired scripts
+/local/

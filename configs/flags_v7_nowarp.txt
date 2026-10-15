@@ -1,0 +1,1 @@
+--max-aniso 2 --max-upscale 4 --icon-edges detail --icon-min-run 0.25 --alpha 2

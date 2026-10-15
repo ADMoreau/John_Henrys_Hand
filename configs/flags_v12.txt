@@ -1,0 +1,1 @@
+--warp --warp-lambda 0.00003 --warp-width 0.15 --warp-coarse 1.0,0.5,0.3 --warp-cands 6 --warp-ctrl 64 --warp-reach 0.6 --warp-max-aniso 3 --max-aniso 2 --max-upscale 4 --warp-min-area 0.15 --icon-edges detail --icon-min-run 0.25 --alpha 3 --prim-edges centerline --prim-spacing 0.008 --fine-ref 0.3 --small-scales 0.05,0.08,0.13,0.2 --max-tol 0.0217
