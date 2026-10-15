@@ -5,7 +5,9 @@ gently warped so that its outlines land on the line work of a target image (the 
 finished piece shows only the icons, at full opacity and in their original colours, with smaller
 icons drawn on top of larger ones.
 
-The primary here is a woodcut of a hand (`data/hand_cutout.png`). The library is ~50,000
+The primary here is the woodcut
+[*John Henry's Hand*](https://americanart.si.edu/artwork/john-henrys-hand-1691) (Smithsonian
+American Art Museum), cut out from its background (`data/hand_cutout.png`). The library is ~50,000
 transparent PNGs; it is not part of this repository.
 
 ![The woodcut (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/current_best_v13.jpg)
