@@ -5,14 +5,17 @@ gently warped so that its outlines land on the line work of a target image (the 
 finished piece shows only the icons, at full opacity and in their original colours, with smaller
 icons drawn on top of larger ones.
 
-The primary here is the woodcut
-[*John Henry's Hand*](https://americanart.si.edu/artwork/john-henrys-hand-1691) (Smithsonian
-American Art Museum), cut out from its background (`data/hand_cutout.png`). The library is ~50,000
+The primary here is Fred Becker's wood engraving *John Henry's Hand* (1935), cut out from its
+background (`data/hand_cutout.png`). The library is ~50,000
 transparent PNGs; it is not part of this repository.
 
-![The woodcut (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/current_best_v13.jpg)
+> Fred Becker, [*John Henry's Hand*](https://americanart.si.edu/artwork/john-henrys-hand-1691),
+> 1935, wood engraving, image: 6 1⁄8 x 4 5⁄8 in. (15.4 x 11.6 cm), Smithsonian American Art
+> Museum, Transfer from D.C. Public Library, 1967.72.30
 
-*Left: the original woodcut. Right: the current best result (v13): 342 icons covering 73.5% of
+![The wood engraving (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/current_best_v13.jpg)
+
+*Left: the original wood engraving. Right: the current best result (v13): 342 icons covering 73.5% of
 its lines with visible icon outlines.*
 
 ## How it works
@@ -43,8 +46,8 @@ its lines with visible icon outlines.*
 |---|---|
 | `src/` | All code. Modules import each other by plain name, so run them as `python src/<module>.py`. |
 | `configs/` | The search flags of each run (`flags_vN.txt`). |
-| `data/` | The primary and its source woodcut, and `excluded.txt`: library images rejected by hand, relative to the library root. |
-| `docs/` | README images, and how the hand was cut out of the woodcut (`segmentation_steps/`). |
+| `data/` | The primary and its source engraving, and `excluded.txt`: library images rejected by hand, relative to the library root. |
+| `docs/` | README images, and how the hand was cut out of the engraving (`segmentation_steps/`). |
 | `scripts/runs/` | One script per run, with that run's full command line. |
 | `scripts/` | `resume.sh RUN`, `pause.sh RUN` and `schedule.sh RUN 'YYYY-MM-DD HH:MM:SS'`: start, stop or schedule a run as a systemd user service. |
 | `runs/` | Not tracked: outputs, checkpoints, trained scorers, library embeddings and caches. |
@@ -102,5 +105,5 @@ re-measures them the v12 way.
 ## License
 
 The code and documentation are released into the public domain under the
-[Unlicense](LICENSE). This does not cover third-party images: the woodcut in `data/` and the
+[Unlicense](LICENSE). This does not cover third-party images: the engraving in `data/` and the
 library icons visible in `docs/current_best_v13.jpg` keep their original rights.
