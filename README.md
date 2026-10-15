@@ -13,7 +13,7 @@ transparent PNGs; it is not part of this repository.
 > 1935, wood engraving, image: 6 1⁄8 x 4 5⁄8 in. (15.4 x 11.6 cm), Smithsonian American Art
 > Museum, Transfer from D.C. Public Library, 1967.72.30
 
-![The wood engraving (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/current_best_v13.jpg)
+![The wood engraving (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/original_and_v13.jpg)
 
 *Left: the original wood engraving. Right: the current best result (v13): 342 icons covering 73.5% of
 its lines with visible icon outlines.*
@@ -106,4 +106,4 @@ re-measures them the v12 way.
 
 The code and documentation are released into the public domain under the
 [Unlicense](LICENSE). This does not cover third-party images: the engraving in `data/` and the
-library icons visible in `docs/current_best_v13.jpg` keep their original rights.
+library icons visible in `docs/original_and_v13.jpg` keep their original rights.
