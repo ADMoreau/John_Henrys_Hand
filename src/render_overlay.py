@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render cover_align results as real image overlays.
 
-  python src/render_overlay.py primary.png result.json out.png
+  python src/render_overlay.py primary.png result.json out.png [--scale K]
 
 Warps each chosen icon (matrices are source px -> primary px) onto a white canvas at
 full opacity with its original colours, larger icons first so smaller ones sit on top;
@@ -22,9 +22,40 @@ def load_rgba(path):
     return im
 
 
+def shrink_source(icon_rgba, row, oversample=2.0):
+    """Area-average a source that is drawn much smaller (warping samples it at single points, so
+    a heavily shrunk icon would alias), keeping `oversample` source px per output px."""
+    f = oversample * np.sqrt(abs(np.linalg.det(np.array(row["matrix_3x3"])[:2, :2])))
+    if f >= 1 or min(icon_rgba.shape[:2]) * f < 4:
+        return icon_rgba, row
+    a = icon_rgba[..., 3:4].astype(np.float32) / 255
+    pre = np.dstack([icon_rgba[..., :3] * a, a * 255])  # premultiplied, so no dark fringes
+    pre = cv2.resize(pre, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    a = pre[..., 3:4] / 255
+    small = np.dstack([pre[..., :3] / np.maximum(a, 1e-6), pre[..., 3:]]).clip(0, 255).astype(np.uint8)
+    fy, fx = small.shape[0] / icon_rgba.shape[0], small.shape[1] / icon_rgba.shape[1]
+    row = dict(row, matrix_3x3=(np.array(row["matrix_3x3"]) @ np.diag([1 / fx, 1 / fy, 1])).tolist())
+    if "mesh_src" in row:
+        row["mesh_src"] = (np.array(row["mesh_src"]) * [fx, fy]).tolist()
+    return small, row
+
+
+def scale_rows(rows, k):
+    """Placements for a canvas k times larger (drawn from the full-size sources)."""
+    S = np.diag([k, k, 1.0])
+    out = []
+    for r in rows:
+        r = dict(r, matrix_3x3=(S @ np.array(r["matrix_3x3"])).tolist())
+        if "mesh_dst" in r:
+            r["mesh_dst"] = (np.array(r["mesh_dst"]) * k).tolist()
+        out.append(r)
+    return out
+
+
 def warp_icon(icon_rgba, row, shape):
     """Icon in primary pixels: affine matrix, or piecewise-affine mesh for warped icons."""
     h, w = shape
+    icon_rgba, row = shrink_source(icon_rgba, row)
     if "mesh_src" not in row:
         return cv2.warpAffine(icon_rgba, np.array(row["matrix_3x3"])[:2], (w, h), flags=cv2.INTER_AREA,
                               borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
@@ -84,9 +115,14 @@ def composite(warped, shape):
     return cur
 
 
-def main(primary, result, out):
+def main(primary, result, out, scale=1.0):
     prim = load_rgba(primary)
     rows = json.load(open(result))
+    if scale != 1:  # final composite only, at scale x the primary's resolution
+        h, w = (round(n * scale) for n in prim.shape[:2])
+        cv2.imwrite(out, composite_many(scale_rows(rows, scale), (h, w)))
+        print(f"wrote {out} ({w}x{h})")
+        return
     h, w = prim.shape[:2]
     if len(rows) > 200:  # too many for a per-round sheet: composite only, one icon in memory at a time
         cur = composite_many(rows, (h, w))
@@ -138,4 +174,7 @@ def write_final(prim, cur, out):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    a = sys.argv[1:]
+    k = float(a.pop(a.index("--scale") + 1)) if "--scale" in a else 1.0
+    a = [x for x in a if x != "--scale"]
+    main(*a[:3], scale=k)

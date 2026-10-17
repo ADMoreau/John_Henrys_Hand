@@ -39,20 +39,32 @@ class Canvas:
         y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
         return int(y0), int(x0), m[y0:y1, x0:x1].copy(), float(len(ys))
 
-    def rec_pixels(self, sh, M, warp, mask, prim):
-        """Flat pixel of the icon point nearest to each primary point in `mask`."""
+    def rec_pixels(self, sh, M, warp, mask, prim, fp, snap=3):
+        """Flat pixel of the icon point nearest to each primary point in `mask`, moved to the
+        nearest pixel the icon is drawn on (footprint fp) within `snap` px: outline points straddle
+        the alpha edge, so they can fall just outside it. Points with no drawn pixel that close
+        are dropped (that outline is not on screen). Returns (primary indices, flat pixels)."""
+        from scipy import ndimage
         idx = np.flatnonzero(mask)
-        if not len(idx):
-            return idx, idx
+        y0, x0, m, _ = fp
+        if not len(idx) or not m.any():
+            return idx[:0], idx[:0]
         Q = ca.apply(self.Pinv, ca.place(sh, M, warp)[0])
         _, nn = cKDTree(Q).query(ca.apply(self.Pinv, prim.pts[idx]))
-        q = np.clip(np.round(Q[nn]).astype(np.int64), 0, [self.w - 1, self.h - 1])
-        return idx, q[:, 1] * self.w + q[:, 0]
+        q = np.round(Q[nn]).astype(np.int64)
+        pad = np.pad(~m, snap + 1, constant_values=True)
+        d, (iy, ix) = ndimage.distance_transform_edt(pad, return_indices=True)
+        y, x = q[:, 1] - y0 + snap + 1, q[:, 0] - x0 + snap + 1
+        ok = (y >= 0) & (y < pad.shape[0]) & (x >= 0) & (x < pad.shape[1])
+        ok[ok] = d[y[ok], x[ok]] <= snap
+        py = iy[y[ok], x[ok]] + y0 - snap - 1
+        px = ix[y[ok], x[ok]] + x0 - snap - 1
+        return idx[ok], py * self.w + px
 
     def attach(self, c, sh, prim):
         """Add the occlusion geometry to a candidate dict from best_for_remainder."""
         c["fp"] = self.footprint(sh, c["image"], c["M"], c.get("warp"))
-        c["rp"], c["rq"] = self.rec_pixels(sh, c["M"], c.get("warp"), c["mask"], prim)
+        c["rp"], c["rq"] = self.rec_pixels(sh, c["M"], c.get("warp"), c["mask"], prim, c["fp"])
         return c
 
     # ---- state ----

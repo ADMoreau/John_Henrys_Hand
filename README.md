@@ -21,7 +21,7 @@ this repository.
 
 ![The current best result, v14: 506 library icons, no part of the engraving drawn](docs/v14.png)
 
-*The current best result (v14): 506 library icons, warped and placed so their outlines trace the
+*The current best result (v14), rendered at 3× (2499×3525): 506 library icons, warped and placed so their outlines trace the
 engraving's lines. Only the icons are drawn.*
 
 ## How it works
@@ -65,7 +65,8 @@ engraving's lines. Only the icons are drawn.*
 | `cover_align.py` | Shapes and edges, placement search, warp, scoring, report. `--selftest` checks the solver on a synthetic case. |
 | `cover_ranked.py` | The main search: scorer-ranked residual greedy over the whole library, with checkpoints, stages and occlusion. |
 | `occlusion.py` | Footprints and visible-outline bookkeeping. |
-| `render_overlay.py` | Renders a result JSON as the icons-only composite and a side-by-side image. |
+| `render_overlay.py` | Renders a result JSON as the icons-only composite and a side-by-side image; `--scale K` draws the composite at K times the primary's resolution from the full-size icons. |
+| `rebuild_canvas.py` | Recomputes a checkpoint's occlusion bookkeeping with the current code and prunes icons that hide more than they add. |
 | `scorer.py` | Trains the next-icon scorer (`train`) and embeds the library with it (`embed`). |
 | `labels.py`, `make_labels.py`, `rescore.py` | Training labels for the scorer: the aligner's true gains on sampled states. |
 | `style_embed.py`, `style_zeroshot.py`, `style_filter.py` | SigLIP embeddings and zero-shot style labels (glow, text, ...). |
@@ -109,8 +110,9 @@ re-measures them the v12 way.
 | v14 | 506 | 81.0% | 81.0% | Continues v13 with full library passes, then alpha 0.25 and 0 at 15 and 11 px |
 
 Up to v14 the renderer cut the edges of warped icons into 4 px steps and drew them ~1.5 px off,
-and the search measured occlusion with those footprints. Both are fixed. Counting only line
-points whose icon outline is actually drawn in the fixed render, v14 covers 76.5%.
+and the search measured occlusion with those footprints. Both are fixed, and the search now
+credits an outline point only where its icon is drawn within 3 px (outline points straddle the
+icon's alpha edge). Re-measured that way (`src/rebuild_canvas.py`), v14 covers 79.7%.
 
 ## License
 
