@@ -35,19 +35,40 @@ def warp_icon(icon_rgba, row, shape):
     else:
         t = PiecewiseAffineTransform()
         t.estimate(src, dst)
-    # evaluate the mesh map on a coarse grid, upsample it, then remap (skimage's per-pixel
-    # warp over the full canvas is minutes per icon)
+    # map only the mesh's bounding box: per pixel for small icons; for larger ones on a coarse
+    # grid (skimage's per-pixel map is slow), upsampled, and per pixel again near the mesh edge
+    out = np.zeros((h, w, icon_rgba.shape[2]), icon_rgba.dtype)
+    x0, y0 = np.maximum(np.floor(src.min(0)).astype(int) - 1, 0)
+    x1, y1 = np.minimum(np.ceil(src.max(0)).astype(int) + 2, (w, h))
+    bw, bh = x1 - x0, y1 - y0
+    if bw <= 0 or bh <= 0:
+        return out
+
+    def exact(xs, ys):
+        e = t(np.column_stack([xs + x0, ys + y0]).astype(np.float64)).astype(np.float32)
+        e[(e < 0).any(-1)] = -1  # outside the mesh
+        return e
+
     step = 4
-    ys, xs = np.mgrid[0:h + step:step, 0:w + step:step].astype(np.float32)
-    m = t(np.column_stack([xs.ravel(), ys.ravel()])).astype(np.float32).reshape(*xs.shape, 2)
-    # outside the mesh, widened by a cell so upsampling never blends real and invalid coordinates
-    bad = cv2.dilate((m < 0).any(-1).astype(np.uint8), np.ones((3, 3), np.uint8))
-    size = (xs.shape[1] * step, xs.shape[0] * step)
-    mx = cv2.resize(m[..., 0], size, interpolation=cv2.INTER_LINEAR)[:h, :w]
-    my = cv2.resize(m[..., 1], size, interpolation=cv2.INTER_LINEAR)[:h, :w]
-    bad = cv2.resize(bad, size, interpolation=cv2.INTER_NEAREST)[:h, :w] > 0
-    mx[bad], my[bad] = -1, -1
-    return cv2.remap(icon_rgba, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+    if bw * bh <= 64 * 64:
+        ys, xs = np.mgrid[0:bh, 0:bw]
+        m = exact(xs.ravel(), ys.ravel()).reshape(bh, bw, 2)
+        mx, my = m[..., 0].copy(), m[..., 1].copy()
+    else:
+        # grid points at cell centres (4k + 1.5), where cv2.resize puts them when upsampling
+        ys, xs = np.mgrid[0:bh + step:step, 0:bw + step:step] + (step - 1) / 2
+        m = exact(xs.ravel(), ys.ravel()).reshape(*xs.shape, 2)
+        # outside the mesh, widened by a cell so upsampling never blends real and invalid coordinates
+        bad = cv2.dilate((m < 0).any(-1).astype(np.uint8), np.ones((3, 3), np.uint8))
+        size = (xs.shape[1] * step, xs.shape[0] * step)
+        mx = cv2.resize(m[..., 0], size, interpolation=cv2.INTER_LINEAR)[:bh, :bw]
+        my = cv2.resize(m[..., 1], size, interpolation=cv2.INTER_LINEAR)[:bh, :bw]
+        yb, xb = np.nonzero(cv2.resize(bad, size, interpolation=cv2.INTER_NEAREST)[:bh, :bw])
+        e = exact(xb, yb)
+        mx[yb, xb], my[yb, xb] = e[:, 0], e[:, 1]
+    out[y0:y1, x0:x1] = cv2.remap(icon_rgba, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                                  borderValue=(0, 0, 0, 0))
+    return out
 
 
 def over(base, warped, opacity=1.0):

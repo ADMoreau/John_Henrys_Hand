@@ -6,17 +6,23 @@ finished piece shows only the icons, at full opacity and in their original colou
 icons drawn on top of larger ones.
 
 The primary here is Fred Becker's wood engraving *John Henry's Hand* (1935), cut out from its
-background (`data/hand_cutout.png`). The library is ~50,000
-transparent PNGs; it is not part of this repository.
+background (`data/hand_cutout.png`). The library is ~50,000 transparent PNGs; it is not part of
+this repository.
+
+## The engraving
+
+![Fred Becker, John Henry's Hand, 1935, wood engraving](data/John_henrys_hand.png)
 
 > Fred Becker, [*John Henry's Hand*](https://americanart.si.edu/artwork/john-henrys-hand-1691),
 > 1935, wood engraving, image: 6 1⁄8 x 4 5⁄8 in. (15.4 x 11.6 cm), Smithsonian American Art
 > Museum, Transfer from D.C. Public Library, 1967.72.30
 
-![The wood engraving (left) and the current best result, v13: 342 icons, 73.5% visible coverage (right)](docs/original_and_v13.jpg)
+## The result
 
-*Left: the original wood engraving. Right: the current best result (v13): 342 icons covering 73.5% of
-its lines with visible icon outlines.*
+![The current best result, v14: 506 library icons, no part of the engraving drawn](docs/v14.png)
+
+*The current best result (v14): 506 library icons, warped and placed so their outlines trace the
+engraving's lines. Only the icons are drawn.*
 
 ## How it works
 
@@ -100,10 +106,14 @@ re-measures them the v12 way.
 | v11 | 147 | 69.0% | 45.0% | Alpha 3, lower gain floor |
 | v12 | 176 | 57.9% | 57.9% | Occlusion-aware coverage, 8 px cap for big icons |
 | v13 | 342 | 73.5% | 73.5% | Continues v12; no re-trying within a stage; stages down to alpha 0.5 and 18 px |
-| v14 | | | | Continues v13 with full library passes, then alpha 0.25 and 0 at 15 and 11 px |
+| v14 | 506 | 81.0% | 81.0% | Continues v13 with full library passes, then alpha 0.25 and 0 at 15 and 11 px |
+
+Up to v14 the renderer cut the edges of warped icons into 4 px steps and drew them ~1.5 px off,
+and the search measured occlusion with those footprints. Both are fixed. Counting only line
+points whose icon outline is actually drawn in the fixed render, v14 covers 76.5%.
 
 ## License
 
 The code and documentation are released into the public domain under the
 [Unlicense](LICENSE). This does not cover third-party images: the engraving in `data/` and the
-library icons visible in `docs/original_and_v13.jpg` keep their original rights.
+library icons in `docs/v14.png` keep their original rights.
